@@ -4,6 +4,7 @@ import (
 	"os"
 	"strconv"
 
+	// I want to remove this later
 	"github.com/mattn/go-isatty"
 )
 
@@ -19,12 +20,13 @@ var (
 
 // Call before to make sure that it all runs smooth
 func init() {
-	for _, elem := range os.Args {
+	for _, elem := range os.Args[1:] {
 		flagMap[elem] = true
 	}
 }
 
 // ColorSupport represents the... color the terminal supports
+// Example: if ColorSupport.hasBasic { do something }
 type ColorSupport struct {
 	Level    int
 	HasBasic bool
@@ -101,15 +103,24 @@ func supportsColor() int {
 	return min()
 }
 
-/*
 // GetSupportLevel determines if you can write color to the terminal.
-// Currently only supports writing out to Files/Stdout/Stderr
-func getSupportLevel() {
+func getSupportLevel() *ColorSupport {
 	const level = checkForcedColor()
-	return translateLevel()
+	return translateLevel(level)
 }
 
-func translateLevel(...io.Writer) int {
-
+func translateLevel(c int) *ColorSupport {
+	var support = &ColorSupport{level: c}
+	switch {
+	case c >= 1:
+		support.hasBasic = true
+		fallthrough
+	case c >= 2:
+		support.has256 = true
+		fallthrough
+	case c == 3:
+		support.has1m = true
+		break
+	}
+	return support
 }
-*/
