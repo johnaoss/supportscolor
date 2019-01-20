@@ -2,7 +2,8 @@
 
 ## Features
 
-This package provides a simple interface to query the level of support found in a given terminal.
+This package provides a simple interface to query the level of color support found in a given terminal.
+This allows developers to know their users are seeing beautiful outputs, instead of junk like `printf "\x1b[38;2;255;100;0mTRUECOLOR\x1b[0m\n"`.  
 
 * Respects the `--color` flags, and additional colour specifications.
 * Handles TTY / Cygwin colour levels
