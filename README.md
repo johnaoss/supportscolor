@@ -1,4 +1,4 @@
-# supports-color
+# supports-color [![GoDoc](https://godoc.org/github.com/johnaoss/supports-color?status.svg)](https://godoc.org/github.com/johnaoss/supports-color)
 
 ## Features
 
