@@ -1,10 +1,15 @@
+// Package supportscolor provides information on the level of color support
+// found in a given terminal, obeying OS-specific color flags.
+// Testing currently has been done via. iTerm2 manual testing.
 package supportscolor
+
+// TODO: Unit Tests, Windows Testing + Different popular terminal testing.
 
 import (
 	"os"
 	"strconv"
 
-	// I want to remove this later
+	// TODO: Remove this later.
 	"github.com/mattn/go-isatty"
 )
 
@@ -14,19 +19,20 @@ var (
 	cistrings    = []string{"TRAVIS", "CIRCLECI", "APPVEYOR", "GITLAB_CI"}
 
 	flagMap = make(map[string]bool)
-	// ForcedColor determines if there are flags in place forcing colour.
+
+	// ForcedColor determines if there are flags in place forcing color.
+	// This should never really change during the lifetime of a given program.
 	ForcedColor *bool
 )
 
-// Call before to make sure that it all runs smooth
+// init() in this case simply adds the flags to a given map to make lookup easier.
 func init() {
 	for _, elem := range os.Args[1:] {
 		flagMap[elem] = true
 	}
 }
 
-// ColorSupport represents the... color the terminal supports
-// Example: if ColorSupport.hasBasic { do something }
+// ColorSupport represents the given colors the terminal supports.
 type ColorSupport struct {
 	Level    int
 	HasBasic bool
@@ -34,6 +40,8 @@ type ColorSupport struct {
 	Has1m    bool
 }
 
+// checkForcedColor checks to see if the terminal color is set
+// to be explicitly a given support level.
 func checkForcedColor() {
 	var boolean bool
 	if item, envcolor := os.LookupEnv("FORCE_COLOR"); envcolor {
@@ -59,7 +67,14 @@ func checkForcedColor() {
 	ForcedColor = nil
 }
 
+// supportsColor finds the given support level of the temrinal,
+// and returns it as an int representing a given level of support.
+// TODO: Turn that level into a semi-enum via. iota.
 func supportsColor() int {
+	if ForcedColor == nil {
+		checkForcedColor()
+	}
+
 	if ForcedColor != nil && *ForcedColor == false {
 		return 0
 	}
@@ -96,6 +111,7 @@ func supportsColor() int {
 		return min()
 	}
 
+	// Check to see if our terminal is truecolour
 	if res, suc := os.LookupEnv("COLORTERM"); suc && res == "truecolor" {
 		return 3
 	}
@@ -103,24 +119,29 @@ func supportsColor() int {
 	return min()
 }
 
-// GetSupportLevel determines if you can write color to the terminal.
-func getSupportLevel() *ColorSupport {
-	const level = checkForcedColor()
-	return translateLevel(level)
-}
-
+// TranslateLevel translates the given integer support level into a struct
+// holding the general levels of support available in the given terminal.
 func translateLevel(c int) *ColorSupport {
-	var support = &ColorSupport{level: c}
+	var support = &ColorSupport{Level: c}
 	switch {
 	case c >= 1:
-		support.hasBasic = true
+		support.HasBasic = true
 		fallthrough
 	case c >= 2:
-		support.has256 = true
+		support.Has256 = true
 		fallthrough
 	case c == 3:
-		support.has1m = true
+		support.Has1m = true
 		break
 	}
 	return support
+}
+
+// GetSupportLevel returns a struct containing whether or not certain
+// color sizes are supported in a given terminal.
+func GetSupportLevel() *ColorSupport {
+	if ForcedColor == nil {
+		checkForcedColor()
+	}
+	return translateLevel(supportsColor())
 }
